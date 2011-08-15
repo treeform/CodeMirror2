@@ -17,7 +17,7 @@ CodeMirror.defineMode("python", function(conf) {
                           'def', 'del', 'elif', 'else', 'except', 'finally',
                           'for', 'from', 'global', 'if', 'import',
                           'lambda', 'pass', 'raise', 'return',
-                          'try', 'while', 'with', 'yield'];
+                          'try', 'while', 'with', 'yield', 'self'];
     var commontypes = ['bool', 'classmethod', 'complex', 'dict', 'enumerate',
                        'float', 'frozenset', 'int', 'list', 'object',
                        'property', 'reversed', 'set', 'slice', 'staticmethod',
@@ -147,9 +147,11 @@ CodeMirror.defineMode("python", function(conf) {
     }
 
     function tokenStringFactory(delimiter) {
+
         while ('rub'.indexOf(delimiter[0].toLowerCase()) >= 0) {
             delimiter = delimiter.substr(1);
         }
+
         var singleline = delimiter.length == 1;
         var OUTCLASS = 'string';
 
@@ -163,7 +165,7 @@ CodeMirror.defineMode("python", function(conf) {
                         return OUTCLASS;
                     }
                 } else if (stream.match(delimiter, true)) {
-                    state.tokenize = tokenBase;)
+                    state.tokenize = tokenBase;
                     return OUTCLASS;
                 } else {
                     stream.eat(/['"]/);
