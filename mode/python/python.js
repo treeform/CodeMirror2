@@ -1,10 +1,10 @@
 CodeMirror.defineMode("python", function(conf) {
     var ERRORCLASS = 'error';
-    
+
     function wordRegexp(words) {
         return new RegExp("^((" + words.join(")|(") + "))\\b");
     }
-    
+
     var singleOperators = new RegExp("^[\\+\\-\\*/%&|\\^~<>!]");
     var singleDelimiters = new RegExp('^[\\(\\)\\[\\]\\{\\}@,:`=;\\.]');
     var doubleOperators = new RegExp("^((==)|(!=)|(<=)|(>=)|(<>)|(<<)|(>>)|(//)|(\\*\\*))");
@@ -65,15 +65,15 @@ CodeMirror.defineMode("python", function(conf) {
         if (stream.eatSpace()) {
             return null;
         }
-        
+
         var ch = stream.peek();
-        
+
         // Handle Comments
         if (ch === '#') {
             stream.skipToEnd();
             return 'comment';
         }
-        
+
         // Handle Number Literals
         if (stream.match(/^[0-9\.]/, false)) {
             var floatLiteral = false;
@@ -109,13 +109,13 @@ CodeMirror.defineMode("python", function(conf) {
                 return 'number';
             }
         }
-        
+
         // Handle Strings
         if (stream.match(stringPrefixes)) {
             state.tokenize = tokenStringFactory(stream.current());
             return state.tokenize(stream, state);
         }
-        
+
         // Handle operators and Delimiters
         if (stream.match(tripleDelimiters) || stream.match(doubleDelimiters)) {
             return null;
@@ -128,42 +128,42 @@ CodeMirror.defineMode("python", function(conf) {
         if (stream.match(singleDelimiters)) {
             return null;
         }
-        
+
         if (stream.match(types)) {
             return 'builtin';
         }
-        
+
         if (stream.match(keywords)) {
             return 'keyword';
         }
-        
+
         if (stream.match(identifiers)) {
             return 'variable';
         }
-        
+
         // Handle non-detected items
         stream.next();
         return ERRORCLASS;
     }
-    
+
     function tokenStringFactory(delimiter) {
         while ('rub'.indexOf(delimiter[0].toLowerCase()) >= 0) {
             delimiter = delimiter.substr(1);
         }
-        var delim_re = new RegExp(delimiter);
         var singleline = delimiter.length == 1;
         var OUTCLASS = 'string';
-        
+
         return function tokenString(stream, state) {
             while (!stream.eol()) {
                 stream.eatWhile(/[^'"\\]/);
                 if (stream.eat('\\')) {
                     stream.next();
                     if (singleline && stream.eol()) {
+                        console.log("single line")
                         return OUTCLASS;
                     }
-                } else if (stream.match(delim_re)) {
-                    state.tokenize = tokenBase;
+                } else if (stream.match(delimiter, true)) {
+                    state.tokenize = tokenBase;)
                     return OUTCLASS;
                 } else {
                     stream.eat(/['"]/);
@@ -171,15 +171,17 @@ CodeMirror.defineMode("python", function(conf) {
             }
             if (singleline) {
                 if (conf.mode.singleLineStringErrors) {
+                    console.log("error")
                     return ERRORCLASS;
                 } else {
                     state.tokenize = tokenBase;
                 }
             }
+            console.log("end")
             return OUTCLASS;
         };
     }
-    
+
     function indent(stream, state, type) {
         type = type || 'py';
         var indentUnit = 0;
@@ -198,7 +200,7 @@ CodeMirror.defineMode("python", function(conf) {
             type: type
         });
     }
-    
+
     function dedent(stream, state) {
         if (state.scopes.length == 1) return;
         if (state.scopes[0].type === 'py') {
@@ -238,7 +240,7 @@ CodeMirror.defineMode("python", function(conf) {
                 return ERRORCLASS;
             }
         }
-        
+
         // Handle decorators
         if (current === '@') {
             style = state.tokenize(stream, state);
@@ -251,7 +253,7 @@ CodeMirror.defineMode("python", function(conf) {
                 return ERRORCLASS;
             }
         }
-        
+
         // Handle scope changes.
         if (current === 'pass' || current === 'return') {
             state.dedent += 1;
@@ -279,7 +281,7 @@ CodeMirror.defineMode("python", function(conf) {
             if (state.scopes.length > 1) state.scopes.shift();
             state.dedent -= 1;
         }
-        
+
         return style;
     }
 
@@ -293,27 +295,27 @@ CodeMirror.defineMode("python", function(conf) {
               dedent: 0
           };
         },
-        
+
         token: function(stream, state) {
             var style = tokenLexer(stream, state);
-            
+
             state.lastToken = {style:style, content: stream.current()};
-            
+
             if (stream.eol() && stream.lambda) {
                 state.lambda = false;
             }
-            
+
             return style;
         },
-        
+
         indent: function(state, textAfter) {
             if (state.tokenize != tokenBase) {
                 return 0;
             }
-            
+
             return state.scopes[0].offset;
         }
-        
+
     };
     return external;
 });
