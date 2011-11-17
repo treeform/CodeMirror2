@@ -47,7 +47,7 @@ CodeMirror.defineMode("coffeescript", function(cmCfg, modeCfg) {
     }
 
     if (ch == '"' || ch == "'") {
-      return switchState(source, setState, stringLiteral);
+      return switchState(source, setState, stringLiteralFactory(ch));
     }
 
     if (largeRE.test(ch)) {
@@ -108,32 +108,38 @@ CodeMirror.defineMode("coffeescript", function(cmCfg, modeCfg) {
       return "comment";
   }
 
-  function stringLiteral(source, setState) {
-    while (!source.eol()) {
-      var ch = source.next();
-      if (ch == '"') {
-        setState(normal);
-        return "string";
-      }
-      if (ch == "'") {
-        setState(normal);
-        return "string";
-      }
-      if (ch == '\\') {
-        if (source.eol() || source.eat(whiteCharRE)) {
-          setState(stringGap);
+  function stringLiteralFactory(delimiter) {
+    return (function (source, setState) {
+      while (!source.eol()) {
+        var ch = source.next();
+          /*
+        if (ch == '"') {
+          setState(normal);
           return "string";
         }
-        if (source.eat('&')) {
+        if (ch == "'") {
+          setState(normal);
+          return "string";
+        }*/
+        if (ch == delimiter) {
+          setState(normal);
+          return "string";
         }
-        else {
-          source.next(); // should handle other escapes here
+        if (ch == '\\') {
+          if (source.eol() || source.eat(whiteCharRE)) {
+            setState(stringGap);
+            return "string";
+          }
+          if (source.eat('&')) {
+          }
+          else {
+            source.next(); // should handle other escapes here
+          }
         }
       }
-    }
-    return "string";
+      return "string";
+    })
   }
-
   function stringGap(source, setState) {
     if (source.eat('\\')) {
       return switchState(source, setState, stringLiteral);
@@ -154,7 +160,8 @@ CodeMirror.defineMode("coffeescript", function(cmCfg, modeCfg) {
     }
 
     setType("keyword")(
-        "do", "if", "else", "then", "when", "try", "catch", "finally", "return",
+        "do", "if", "else", "then", "when",
+        "try", "catch", "finally", "throw", "return",
         "new", "class", "extends",
         "for", "while", "until", "in", "of", "then", "type", "where", "_");
 
